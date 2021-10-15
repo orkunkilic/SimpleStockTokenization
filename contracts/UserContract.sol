@@ -5,6 +5,7 @@ import "./Token.sol";
 
 contract UserContract {
     mapping(string => uint256) stocks;
+    mapping(string => mapping(uint256 => uint256)) buyingPrices;
     Token token;
     address payable owner;
     event Buy(uint256, uint256, uint256);
@@ -19,7 +20,8 @@ contract UserContract {
     }
     
     function buyStock(string memory symbol, uint256 newStockAmount, uint256 currentStockPriceInWei) public payable onlyOwner returns(bool)  { // should be payable
-        //require(msg.value == ((newStockAmount - stocks[symbol]) / 10 ** 18) * currentStockPriceInWei, "You should pay the correct amount to buy this stock!");
+        //require(msg.value == ((newStockAmount - stocks[symbol]) / 10 ** 18) * (currentStockPriceInWei / 10 ** 6), "You should pay the correct amount to buy this stock!");
+        buyingPrices[symbol][newStockAmount-stocks[symbol]] = currentStockPriceInWei / 10 ** 6;
         emit Buy(newStockAmount - stocks[symbol], currentStockPriceInWei, msg.value);
         token.mint(newStockAmount / 10 ** 18, symbol);
         stocks[symbol] = newStockAmount;
@@ -34,7 +36,7 @@ contract UserContract {
         require(stocks[symbol] >= amountToSell, "You do not have enough amount of the stock to sell!");
         stocks[symbol] -= amountToSell;
         token.burn(amountToSell / 10 ** 18, symbol);
-        //owner.transfer(amountToSell * currentStockPriceInWei);
+        owner.transfer(amountToSell * currentStockPriceInWei);
     }
     
     function getBalance() public view onlyOwner returns(uint256){

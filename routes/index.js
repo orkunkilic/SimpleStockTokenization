@@ -59,6 +59,9 @@ router.post('/', async function (req, res, next) {
 
   const stockAmount = amount / stock.price;
 
+  console.log(Number((stock.price / ethPrice) * 10 ** 24));
+  console.log(stockAmount);
+
   var stockAmountOfUser = await userContract.methods
     .getStockAmount(stock.symbol)
     .call({ from: user.address });
@@ -67,13 +70,11 @@ router.post('/', async function (req, res, next) {
     .buyStock(
       stock.symbol,
       (stockAmount * 10 ** 18 + Number(stockAmountOfUser)).toString(),
-      Math.ceil(Number((stock.price / ethPrice) * 10 ** 18))
+      Number((stock.price / ethPrice) * 10 ** 24).toString()
     )
     .send({
       from: user.address,
-      value: Math.ceil(
-        Number((stock.price / ethPrice) * 10 ** 18) * stockAmount
-      ),
+      value: Number((stock.price / ethPrice) * 10 ** 18) * stockAmount,
     });
 
   console.log(buy.events.Buy.returnValues);
